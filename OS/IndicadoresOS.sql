@@ -1,46 +1,28 @@
-SELECT NVL(SUM(TOTAL),0) AS TOTAL
-     , NVL(SUM(TOTALVENDA),0) AS TOTALVENDA
-     , NVL(SUM(TOTALBONIFIC),0) AS TOTALBONIF
-     , NVL(SUM(TOTALDEVOLV),0) AS TOTALDEVOLV
-     , DTNEG 
-FROM ( SELECT SUM(CASE WHEN TIPMOV = 'V' THEN CAB.VLRNOTA WHEN TIPMOV = 'D' THEN CAB.VLRNOTA * -1 END) AS TOTAL
-            , SUM(CASE WHEN TIPMOV = 'V' AND CAB.CODTIPOPER IN (3100, 3101) THEN CAB.VLRNOTA END) AS TOTALVENDA
-            , SUM(CASE WHEN TIPMOV = 'V' AND CAB.CODTIPOPER IN (3102) THEN CAB.VLRNOTA END) AS TOTALBONIFIC
-            , SUM(CASE WHEN TIPMOV = 'D' THEN CAB.VLRNOTA END) AS TOTALDEVOLV
-            , CAB.DTNEG
-         FROM TGFCAB CAB 
-        WHERE CODVEND IN  (SELECT CODVEND AS VALUE FROM TGFVEN) 
-          AND TIPMOV    IN ('V', 'D') 
-          AND STATUSNFE = 'A'
-          AND CAB.DTNEG BETWEEN '01/03/2021' AND '30/03/2021'
-        GROUP BY CAB.DTNEG            , DTNEG
-        ORDER BY CAB.DTNEG ) 
- GROUP BY DTNEG
- ORDER BY DTNEG;
-  
- SELECT CODVEND AS VALUE, APELIDO AS LABEL FROM TGFVEN;
- 
- 
- SELECT SUM(CASE
-                WHEN TIPMOV = 'V' THEN CAB.VLRNOTA
-                WHEN TIPMOV = 'D' THEN CAB.VLRNOTA * -1
-                END) AS TOTAL,
-                CAB.DTNEG
-        FROM TGFCAB CAB WHERE CAB.DTNEG BETWEEN '01/03/2021' AND '02/03/2021'
-        GROUP BY cab.dtneg;
+-- 16/07/2021
 
--------------------------------------------------------------------------------
+-- OS ABERTA E FECHADA NO PERÍODO PESQUISADO:
+SELECT * FROM (
+        SELECT tipo, statustexto
+        FROM v_chamadosti
+        WHERE dtabertura BETWEEN '01/06/2021' AND '30/06/2021'    AND seqchamado = 1
+    )
+    PIVOT (
+        COUNT(statustexto)
+        for statustexto in ('Concluído' as "Concluido", 'Novo' as "Novo")
+);
 
-SELECT NVL(SUM(TOTAL),0) AS TOTAL , DTNEG 
-FROM ( SELECT SUM(CASE
-                WHEN TIPMOV = 'V' THEN CAB.VLRNOTA
-                WHEN TIPMOV = 'D' THEN CAB.VLRNOTA * -1
-                END) AS TOTAL,
-                CAB.DTNEG
-        FROM TGFCAB CAB WHERE CAB.DTNEG BETWEEN '01/03/2021' AND '02/03/2021'
-        GROUP BY cab.dtneg)
-GROUP BY dtneg;
+-- OS FECHADA INDEPENDENTE DA DATA DE ABERTURA
+SELECT * FROM (
+    SELECT 'OS' AS OS, tipo
+    FROM v_chamadosti
+    WHERE dtfechamento BETWEEN '01/06/2021' AND '30/06/2021'
+        AND seqchamado = 1
+)
+PIVOT(
+    count(tipo)
+    for tipo in ('TREINAMENTO' AS "Treinamento", 'SISTEMA' AS "Sistema", 'INFRAESTRUTURA' AS "Infraestrutura")
+);
 
--------------------------------------------------------------------------------
+-- CONTAR CHAMADOS POR ATENTEDE:
 
- 
+SELECT * FROM v_chamadosti;

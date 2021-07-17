@@ -23,6 +23,13 @@ PIVOT(
     for tipo in ('TREINAMENTO' AS "Treinamento", 'SISTEMA' AS "Sistema", 'INFRAESTRUTURA' AS "Infraestrutura")
 );
 
--- CONTAR CHAMADOS POR ATENTEDE:
+-- CHAMADOS FECHADOS POR ATENTEDE:
 
 SELECT * FROM v_chamadosti;
+
+SELECT atendente, tipo, count(sequencia) FROM v_chamadosti WHERE (sequencia, seqchamado) IN (SELECT sequencia, max(seqchamado)
+FROM v_chamadosti
+WHERE dtfechamento BETWEEN '01/06/2021' AND '30/06/2021' AND dtfechamento IS NOT NULL
+GROUP BY sequencia)
+GROUP BY atendente, tipo;
+
